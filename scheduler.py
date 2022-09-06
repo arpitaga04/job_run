@@ -170,7 +170,7 @@ class Scheduler:
                 for jobid in jobids:
                     jobs.append(self.getJobById(jobid))
             except ValueError as err:
-                print("Not a valid integer : {err}".format(err=err))
+                print ("Not a valid integer : {err}".format(err=err))
         
         elif args.jobnames is not None:
             jobnames = [i.lower().strip() for i in args.jobnames.split(",")]
@@ -184,7 +184,7 @@ class Scheduler:
                 return 0
         for job in jobs:
             if job == -1:
-                print("Could not find the job")
+                print ("Could not find the job")
                 continue
             print (json.dumps(job))
 
@@ -197,13 +197,13 @@ class Scheduler:
                 for jobid in jobids:
                     jobs.append(self.deleteJobById(jobid))
             except ValueError as err:
-                print("Not a valid integer : {err}".format(err=err))
+                print ("Not a valid integer : {err}".format(err=err))
 
         for job in jobs:
             if job == -1:
-                print("Could not find the jobid")
+                print ("Could not find the jobid")
                 continue
-            print (job)
+            print (json.dumps(job))
 
     def executeJobsHandlerFunction(self, args):
         if args.dryrun is True:
