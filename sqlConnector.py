@@ -164,6 +164,32 @@ class SqlConnector:
 
         return (jobs)
 
+    def findJobsByJobName(self, jobname):
+        query = "SELECT * FROM {table} WHERE JOB_NAME LIKE %s".format(table=self.table)
+        values=("%" + jobname + "%",)
+        try:
+            cursorObj = self.db_connection.cursor()
+            cursorObj.execute(query, values)
+        except connection.Error as error:
+            logger.error("Database error: Unable to execute the Query {query} : {error}".format(query = query, error = error))
+            return -1
+        results = cursorObj.fetchall()
+        if len(results) == 0:
+            logger.warning("Could not find jobs with pattern : {jobname}".format(jobname=jobname))
+            return None
+        jobs = []
+        for result in results:
+            result_dict = {
+            'jobId': result[0],
+            'jobName': result[1],
+            'scriptPath': result[2],
+            'timestamp': result[3]
+            }
+
+            jobs.append(result_dict)
+
+        return (jobs)
+
     def getAllJobs(self):
         query = "SELECT * FROM {table}".format(table=self.table)
         try:
@@ -237,8 +263,12 @@ def populateTable():
 if __name__ == "__main__":
     sql_interface = SqlConnector()
     sql_interface.createTableIfNotPresent()
-
-    populateTable()
+    jobname = " TesT-_9 "
+    jobs = sql_interface.findJobsByJobName(jobname.lower().strip())
+    for job in jobs:
+        print (job)
+    print ("Number of jobs = ", len(jobs))
+    # populateTable()
 
     # epochEndTime = int(time.time())
     # epochStartTime = epochEndTime - 600

@@ -74,6 +74,17 @@ class Scheduler:
             sys.exit(1)
         return jobs
 
+    def findJobsByName(self, jobname):
+        jobs = self.sql_interface.findJobsByJobName(jobname)
+
+        if jobs == None:
+            logger.warning("No jobs found")
+            return -1
+        elif jobs == -1:
+            logger.fatal("Database error")
+            sys.exit(1)
+        return jobs
+
     def executeJobs(self, prune=True):
 
         currentTimestamp = int(time.time())
@@ -151,7 +162,7 @@ class Scheduler:
         
         print ("Job {jobid} updated with the new timestamp {timestamp}".format(jobid=job["jobId"], timestamp=job["timestamp"]))
 
-    def listAllJobsHandlerFunction(self, args):
+    def listJobsHandlerFunction(self, args):
         jobs=[]
         if args.jobids is not None:
             try:
@@ -160,6 +171,12 @@ class Scheduler:
                     jobs.append(self.getJobById(jobid))
             except ValueError as err:
                 print("Not a valid integer : {err}".format(err=err))
+        
+        elif args.jobnames is not None:
+            jobnames = [i.lower().strip() for i in args.jobnames.split(",")]
+            for jobname in jobnames:
+                jobs.extend(self.findJobsByName(jobname))
+
         else:
             jobs = self.listAllJobs()
             if jobs == -1:
@@ -167,7 +184,7 @@ class Scheduler:
                 return 0
         for job in jobs:
             if job == -1:
-                print("Could not find the jobid")
+                print("Could not find the job")
                 continue
             print (json.dumps(job))
 
@@ -221,7 +238,8 @@ if __name__ == "__main__":
 
     parser_list = subparsers.add_parser('list', help='List all jobs')
     parser_list.add_argument('--jobids', type=str, help='comma separated jobids')
-    parser_list.set_defaults(func=sch.listAllJobsHandlerFunction)
+    parser_list.add_argument('--jobnames', type=str, help='comma separated jobnames')
+    parser_list.set_defaults(func=sch.listJobsHandlerFunction)
 
     parser_deletejob = subparsers.add_parser('delete', help='Delete the job')
     parser_deletejob.add_argument('--jobids', type=str, help='comma separated jobids', required=True)
