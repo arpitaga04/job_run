@@ -15,8 +15,8 @@ fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 
-# INTERVAL_IN_SECS=600
-INTERVAL_IN_SECS=7200
+INTERVAL_IN_SECS=600
+# INTERVAL_IN_SECS=7200
 
 def script_executor(script_path):
     proc = subprocess.Popen(script_path, stdout=subprocess.PIPE,
@@ -77,15 +77,12 @@ class Scheduler:
     def executeJobs(self, prune=True):
 
         currentTimestamp = int(time.time())
-        previousTimestamp = currentTimestamp - INTERVAL_IN_SECS
+        # previousTimestamp = currentTimestamp - INTERVAL_IN_SECS
         success = 0
         fail = 0
-        if prune == False:
-            # jobs = self.sql_interface.findJobsBetweenTimestamps(previousTimestamp, currentTimestamp)
-            jobs = self.sql_interface.findJobsBetweenTimestamps(0, currentTimestamp)
-        else:
-            # jobs = self.sql_interface.deleteJobBetweenTimestamps(previousTimestamp, currentTimestamp)
-            jobs = self.sql_interface.deleteJobBetweenTimestamps(0, currentTimestamp)
+
+        jobs = self.sql_interface.findJobsBetweenTimestamps(0, currentTimestamp)
+
         if jobs == None:
             logger.warning("No jobs found")
             return -1
@@ -95,38 +92,16 @@ class Scheduler:
         for job in jobs:
             # out, err, exit_code = script_executor(job['scriptPath'] + ">> execution_output.txt")
             out, err, exit_code = script_executor(job['scriptPath'] )
+
             if exit_code != 0:
-                logger.error ("Script execution errored for job {jobid} : {error} ".format(jobid=job['jobId'], error=err))
+                logger.error ("Script execution {scriptPath} errored for job {jobid} : {error} ".format(scriptPath=job['scriptPath'], jobid=job['jobId'], error=err))
                 fail = fail + 1
                 continue
-            
+            if prune:
+                self.deleteJobById(job['jobId'])
             logger.info("Output of job {jobid} : {output}".format(jobid=job['jobId'], output=out))
             success = success + 1
         logger.info("Success = {success}, Failed={fail}".format(success=success, fail=fail))
-
-    # def executeJobsWithoutPrune(self):
-    #     currentTimestamp = int(time.time())
-    #     previousTimestamp = currentTimestamp - INTERVAL_IN_SECS
-    #     success = 0
-    #     fail = 0
-    #     jobs = self.sql_interface.findJobsBetweenTimestamps(previousTimestamp, currentTimestamp)
-    #     if jobs == None:
-    #         logger.warning("No jobs found")
-    #         return -1
-    #     elif jobs == -1:
-    #         logger.fatal("Database error")
-    #         sys.exit(1)
-    #     for job in jobs:
-    #         # out, err, exit_code = script_executor(job['scriptPath'] + ">> execution_output.txt")
-    #         out, err, exit_code = script_executor(job['scriptPath'] )
-    #         if exit_code != 0:
-    #             logger.error ("Script execution errored for job {jobid} : {error} ".format(jobid=job['jobId'], error=err))
-    #             fail = fail + 1
-    #             continue
-    #         logger.info("Output of job {jobid} : {output}".format(jobid=job['jobId'], output=out))
-    #         success = success + 1
-    #     logger.info("Success = {success}, Failed={fail}".format(success=success, fail=fail))
-
 
     def getJobById(self, jobid):
         job = self.sql_interface.getJobById(jobid)
@@ -154,10 +129,6 @@ class Scheduler:
             print ("Failed to add job")
             return -1
         print ("Job {jobid} added successfully".format(jobid=jobid) )
-        # print ("add job")
-        # print (args.jobname)
-        # print (args.scriptpath)
-        # print (args.timestamp)
 
     def changeTimestampHandlerFunction(self, args):
         job = self.changeTimestamp(args.jobid, args.timestamp)
@@ -206,27 +177,16 @@ class Scheduler:
 
     def executeJobsHandlerFunction(self, args):
         if args.dryrun is True:
-            while True:
-                self.executeJobs(prune=False)
-                time.sleep(INTERVAL_IN_SECS)
+            prune=False
         else:
-            while True:
-                self.executeJobs()
-                time.sleep(INTERVAL_IN_SECS)
+            prune=True
+        while True:
+            self.executeJobs(prune)
+            time.sleep(INTERVAL_IN_SECS)
+
 
 if __name__ == "__main__":
     sch = Scheduler()
-    # sch.addJob("test-job", "/path/to/script", 1662437893)
-    # sch.changeTimestamp(78, 1662437800)
-    # sch.listAllJobs()
-    # time.sleep(20)
-    # sch.addJob("test-job-999", "/home/arpit/job_run/test_scripts/script1.sh", 1662307589)
-
-    # while True:
-    #     # sch.pruner()
-    #     sch.findJobsToPrune()
-    #     time.sleep(INTERVAL_IN_SECS)
-
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='sub-command help')

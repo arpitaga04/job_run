@@ -240,23 +240,13 @@ if __name__ == "__main__":
 
     populateTable()
 
-    epochEndTime = int(time.time())
-    epochStartTime = epochEndTime - 600
+    # epochEndTime = int(time.time())
+    # epochStartTime = epochEndTime - 600
 
-    jobsBetweenTimestamps = sql_interface.findJobsBetweenTimestamps(epochStartTime,epochEndTime)
-    if jobsBetweenTimestamps != None:
-        for job in jobsBetweenTimestamps:
-            print (job)
-        print ("Number of jobs = ", len(jobsBetweenTimestamps))
+    # jobsBetweenTimestamps = sql_interface.findJobsBetweenTimestamps(epochStartTime,epochEndTime)
+    # if jobsBetweenTimestamps != None:
+    #     for job in jobsBetweenTimestamps:
+    #         print (job)
+    #     print ("Number of jobs = ", len(jobsBetweenTimestamps))
 
     sql_interface.closeDBConnection()
-    
-
-'''
-Useful SQL queries
-
-find the record with minimum value
-SELECT *FROM job_schedules WHERE TIMESTAMP=(SELECT MIN(TIMESTAMP) FROM job_schedules);
-
-
-'''
