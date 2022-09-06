@@ -124,7 +124,20 @@ class Scheduler:
         return job
     
     def addJobHandlerFunction(self, args):
-        jobid = self.addJob(args.jobname, args.scriptpath, args.timestamp)
+        secs = 0
+        timestamp = 0
+        if args.timestamp is not None:
+            timestamp = args.timestamp
+        else :
+            if (args.days is not None):
+                secs = secs + args.days*86400
+            if (args.hours is not None):
+                secs = secs + args.hours*3600
+            if (args.mins is not None):
+                secs = secs + args.mins*60
+            timestamp = int(time.time()) + secs
+
+        jobid = self.addJob(args.jobname, args.scriptpath, timestamp)
         if (jobid == -1):
             print ("Failed to add job")
             return -1
@@ -194,8 +207,12 @@ if __name__ == "__main__":
     parser_add = subparsers.add_parser('add', help='Add job')
     parser_add.add_argument('--jobname', type=str, help='jobname', required=True)
     parser_add.add_argument('--scriptpath', type=str, help='scriptpath', required=True)
-    parser_add.add_argument('--timestamp', type=int, help='timestamp', required=True)
+    parser_add.add_argument('--timestamp', type=int, help='Epoch timestamp of execution')
+    parser_add.add_argument('--days', type=int, help='Set the execution after --days from current time')
+    parser_add.add_argument('--hours', type=int, help='Set the execution after --hours from current time')
+    parser_add.add_argument('--mins', type=int, help='Set the execution after --mins from current time')
     parser_add.set_defaults(func=sch.addJobHandlerFunction)
+    parser_add.epilog = "Either of the values from timestamp, days, hours, or mins should be specified. Days, hours or minutes can be specified together"
 
     parser_changetime = subparsers.add_parser('changetime', help='Change the timestamp of job execution')
     parser_changetime.add_argument('--jobid', type=int, help='jobid of the job', required=True)
