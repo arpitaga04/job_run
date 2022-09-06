@@ -155,7 +155,20 @@ class Scheduler:
         print ("Job {jobid} added successfully".format(jobid=jobid) )
 
     def changeTimestampHandlerFunction(self, args):
-        job = self.changeTimestamp(args.jobid, args.timestamp)
+        secs = 0
+        timestamp = 0
+        if args.timestamp is not None:
+            timestamp = args.timestamp
+        else :
+            if (args.days is not None):
+                secs = secs + args.days*86400
+            if (args.hours is not None):
+                secs = secs + args.hours*3600
+            if (args.mins is not None):
+                secs = secs + args.mins*60
+            timestamp = int(time.time()) + secs
+
+        job = self.changeTimestamp(args.jobid, timestamp)
         if job == -1:
             print ("Failed to update the job")
             return -1
@@ -233,7 +246,11 @@ if __name__ == "__main__":
 
     parser_changetime = subparsers.add_parser('changetime', help='Change the timestamp of job execution')
     parser_changetime.add_argument('--jobid', type=int, help='jobid of the job', required=True)
-    parser_changetime.add_argument('--timestamp', type=int, help='new timestamp of the job', required=True)
+    parser_changetime.add_argument('--timestamp', type=int, help='new timestamp of the job')
+    parser_changetime.add_argument('--days', type=int, help='Set the execution after --days from current time')
+    parser_changetime.add_argument('--hours', type=int, help='Set the execution after --hours from current time')
+    parser_changetime.add_argument('--mins', type=int, help='Set the execution after --mins from current time')
+    parser_changetime.epilog = "Either of the values from timestamp, days, hours, or mins should be specified. Days, hours or minutes can be specified together"
     parser_changetime.set_defaults(func=sch.changeTimestampHandlerFunction)
 
     parser_list = subparsers.add_parser('list', help='List all jobs')
