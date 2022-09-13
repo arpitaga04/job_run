@@ -25,7 +25,8 @@ class SqlConnector:
         self.table = "job_schedules"
         if(self.getDBConnection() == -1):
             sys.exit(1)
-
+        if(self.createTableIfNotPresent() == -1):
+            sys.exit(1)
 
     def getDBConnection(self):
         connection_info = {
