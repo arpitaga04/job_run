@@ -79,7 +79,7 @@ class Scheduler:
 
         if jobs == None:
             logger.warning("No jobs found")
-            return -1
+            return []
         elif jobs == -1:
             logger.fatal("Database error")
             sys.exit(1)
@@ -219,7 +219,9 @@ class Scheduler:
 
             for job in jobs:
                 self.deleteJobById(job['jobId'])
-
+        else :
+            print("Please input either jobids or jobnames")
+            return
         for job in jobs:
             if job == -1:
                 print ("Could not find the jobid")
@@ -267,8 +269,9 @@ if __name__ == "__main__":
     parser_list.set_defaults(func=sch.listJobsHandlerFunction)
 
     parser_deletejob = subparsers.add_parser('delete', help='Delete the job')
-    parser_deletejob.add_argument('--jobids', type=str, help='comma separated jobids', required=True)
-    parser_deletejob.add_argument('--jobnames', type=str, help='comma separated jobids', required=True)
+    parser_deletejob.add_argument('--jobids', type=str, help='comma separated jobids')
+    parser_deletejob.add_argument('--jobnames', type=str, help='comma separated jobids')
+    parser_deletejob.epilog = "Either of the jobids or jobnames are required"
     parser_deletejob.set_defaults(func=sch.deleteJobHandlerFunction)
 
     parser_schedule = subparsers.add_parser('schedule', help='Schedule to run the job executions automatically based on timestamp')
