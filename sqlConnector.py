@@ -50,7 +50,7 @@ class SqlConnector:
 
     def createTableIfNotPresent(self):
         try:
-            if not self.getTables() :
+            if self.table not in self.getTables() :
                 table_schema_query = """
                     CREATE TABLE {table} (
                         JOB_ID INT AUTO_INCREMENT PRIMARY KEY,

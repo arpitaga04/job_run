@@ -201,7 +201,7 @@ class Scheduler:
                 continue
             print (json.dumps(job))
 
-    def deleteJobByIdHandlerFunction(self, args):
+    def deleteJobHandlerFunction(self, args):
 
         jobs=[]
         if args.jobids is not None:
@@ -211,6 +211,14 @@ class Scheduler:
                     jobs.append(self.deleteJobById(jobid))
             except ValueError as err:
                 print ("Not a valid integer : {err}".format(err=err))
+
+        elif args.jobnames is not None:
+            jobnames = [i.lower().strip() for i in args.jobnames.split(",")]
+            for jobname in jobnames:
+                jobs.extend(self.findJobsByName(jobname))
+
+            for job in jobs:
+                self.deleteJobById(job['jobId'])
 
         for job in jobs:
             if job == -1:
@@ -260,7 +268,8 @@ if __name__ == "__main__":
 
     parser_deletejob = subparsers.add_parser('delete', help='Delete the job')
     parser_deletejob.add_argument('--jobids', type=str, help='comma separated jobids', required=True)
-    parser_deletejob.set_defaults(func=sch.deleteJobByIdHandlerFunction)
+    parser_deletejob.add_argument('--jobnames', type=str, help='comma separated jobids', required=True)
+    parser_deletejob.set_defaults(func=sch.deleteJobHandlerFunction)
 
     parser_schedule = subparsers.add_parser('schedule', help='Schedule to run the job executions automatically based on timestamp')
     parser_schedule.add_argument('--dryrun', type=bool, help='Execute jobs without deleting the entry from the DB')
