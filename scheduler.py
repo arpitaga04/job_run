@@ -21,6 +21,11 @@ def script_executor(script_path):
     exit_code = proc.returncode
     return out, err, exit_code
 
+def secs_to_date(secs):
+    """
+    Convert secs to human readable time
+    """
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(secs))
 
 class Scheduler:
 
@@ -190,11 +195,24 @@ class Scheduler:
             if jobs == -1:
                 print ("No jobs in the database")
                 return 0
-        for job in jobs:
-            if job == -1:
-                print ("Could not find the job")
-                continue
-            print (json.dumps(job))
+        if args.json:
+            for job in jobs:
+                if job == -1:
+                    print ("Could not find the job")
+                    continue
+                print (json.dumps(job))
+        else:
+            format_row = "{:>12}" * (len(jobs[0]) + 2)
+            format_row = "{:^10} | {:^15} | {:^11} | {:^20} | {:^20} "
+
+            print(format_row.format("Job Id", "Job Name", "Timestamp", "Time", "ScriptPath"))
+            print("------------------------------------------------------------------------")
+            for job in jobs:
+                if job == -1:
+                    print(format_row.format(job,"-", "-", "-", "-"))
+
+                    continue
+                print(format_row.format(job['jobId'], job['jobName'], job['timestamp'], secs_to_date(job['timestamp']), job['scriptPath']))
 
     def deleteJobHandlerFunction(self, args):
 
@@ -266,6 +284,7 @@ if __name__ == "__main__":
     parser_list = subparsers.add_parser('list', help='List all jobs')
     parser_list.add_argument('--jobids', type=str, help='comma separated jobids')
     parser_list.add_argument('--jobnames', type=str, help='comma separated jobnames')
+    parser_list.add_argument('--json', default=False, type=bool, help='Print Output in json format instead of table (default: %(default)s)')
     parser_list.set_defaults(func=sch.listJobsHandlerFunction)
 
     parser_deletejob = subparsers.add_parser('delete', help='Delete the job')
