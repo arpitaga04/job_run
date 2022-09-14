@@ -95,7 +95,7 @@ class Scheduler:
         jobs = self.sql_interface.findJobsBetweenTimestamps(0, currentTimestamp)
 
         if jobs == None:
-            logger.warning("No jobs found")
+            logger.info("No jobs found for execution")
             return -1
         elif jobs == -1:
             logger.fatal("Database error")
@@ -103,15 +103,14 @@ class Scheduler:
         for job in jobs:
             # out, err, exit_code = script_executor(job['scriptPath'] + ">> execution_output.txt")
             out, err, exit_code = script_executor(job['scriptPath'] )
-
+            if prune:
+                self.deleteJobById(job['jobId'])
             if exit_code != 0:
                 logger.error ("Script execution {scriptPath} errored for job {jobid} : {error} ".format(scriptPath=job['scriptPath'], jobid=job['jobId'], error=err))
                 fail = fail + 1
-                continue
-            if prune:
-                self.deleteJobById(job['jobId'])
-            logger.info("Output of job {jobid} : {output}".format(jobid=job['jobId'], output=out))
-            success = success + 1
+            else:
+                logger.info("Output of job {jobid} : {output}".format(jobid=job['jobId'], output=out))
+                success = success + 1
         logger.info("Success = {success}, Failed={fail}".format(success=success, fail=fail))
 
     def getJobById(self, jobid):
@@ -152,7 +151,7 @@ class Scheduler:
         if (jobid == -1):
             print ("Failed to add job")
             return -1
-        print ("Job {jobid} added successfully".format(jobid=jobid) )
+        print ("job {jobid} added successfully".format(jobid=jobid) )
 
     def changeTimestampHandlerFunction(self, args):
         secs = 0
@@ -173,7 +172,7 @@ class Scheduler:
             print ("Failed to update the job")
             return -1
         
-        print ("Job {jobid} updated with the new timestamp {timestamp}".format(jobid=job["jobId"], timestamp=job["timestamp"]))
+        print ("job {jobid} updated with the new timestamp {timestamp}".format(jobid=job["jobId"], timestamp=job["timestamp"]))
 
     def listJobsHandlerFunction(self, args):
         jobs=[]

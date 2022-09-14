@@ -60,10 +60,10 @@ class SqlConnector:
                     )""".format(table = self.table)
                 cursorObj = self.db_connection.cursor()
                 cursorObj.execute(table_schema_query)
+                logger.info("Successfully created the table : {table}".format(table=self.table))
         except connection.Error as error:
             logger.fatal("Database error: Failed to Create table: {}".format(error))
             return -1
-        logger.info("Successfully created the table : {table}".format(table=self.table))
         return 0
                 
 
