@@ -14,10 +14,6 @@ formatter = logging.Formatter('%(levelname)s %(asctime)s %(message)s')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-
-INTERVAL_IN_SECS=600
-# INTERVAL_IN_SECS=7200
-
 def script_executor(script_path):
     proc = subprocess.Popen(script_path, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
@@ -228,13 +224,18 @@ class Scheduler:
             print (json.dumps(job))
 
     def executeJobsHandlerFunction(self, args):
-        if args.dryrun is True:
+        if args.dryrun:
             prune=False
         else:
             prune=True
+
+        if args.executeonce:
+            self.executeJobs(prune)
+            return
+
         while True:
             self.executeJobs(prune)
-            time.sleep(INTERVAL_IN_SECS)
+            time.sleep(args.interval)
 
 
 if __name__ == "__main__":
@@ -274,7 +275,9 @@ if __name__ == "__main__":
     parser_deletejob.set_defaults(func=sch.deleteJobHandlerFunction)
 
     parser_schedule = subparsers.add_parser('schedule', help='Schedule to run the job executions automatically based on timestamp')
-    parser_schedule.add_argument('--dryrun', type=bool, help='Execute jobs without deleting the entry from the DB')
+    parser_schedule.add_argument('--dryrun', default=False, type=bool, help='Trigger jobs execution without deleting the entry from the DB (default: %(default)s)')
+    parser_schedule.add_argument('--interval', default=600, type=int, help='Trigger jobs execution every interval (default: %(default)s)')
+    parser_schedule.add_argument('--executeonce', default=False, type=bool, help='Trigger jobs execution only once, instead of every interval (default: %(default)s)')
     parser_schedule.set_defaults(func=sch.executeJobsHandlerFunction)
 
     args = parser.parse_args()
